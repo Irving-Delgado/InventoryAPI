@@ -7,3 +7,4 @@ exports.itemsRouter = (0, express_1.Router)();
 exports.itemsRouter.post("/", item_controller_1.itemsController.create);
 exports.itemsRouter.get("/", item_controller_1.itemsController.list);
 exports.itemsRouter.get("/:id", item_controller_1.itemsController.getById);
+exports.itemsRouter.put("/:id", item_controller_1.itemsController.update);

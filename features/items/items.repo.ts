@@ -17,5 +17,11 @@ export const itemRepository = {
     },
     getById(id: string) {
         return prisma.item.findUnique({ where: { id } });
+    },
+    update(id: string, data: Partial<CreateItemBody>) {
+        return prisma.item.update({ where: { id }, data });
+    },
+    delete(id: string) {
+        return prisma.item.delete({ where: { id } });
     }
 }

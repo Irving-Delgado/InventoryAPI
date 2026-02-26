@@ -11,5 +11,8 @@ exports.itemsService = {
     },
     getById(id) {
         return items_repo_1.itemRepository.getById(id);
+    },
+    update(id, data) {
+        return items_repo_1.itemRepository.update(id, data);
     }
 };

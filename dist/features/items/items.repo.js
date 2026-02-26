@@ -18,5 +18,11 @@ exports.itemRepository = {
     },
     getById(id) {
         return prisma_1.prisma.item.findUnique({ where: { id } });
+    },
+    update(id, data) {
+        return prisma_1.prisma.item.update({ where: { id }, data });
+    },
+    delete(id) {
+        return prisma_1.prisma.item.delete({ where: { id } });
     }
 };

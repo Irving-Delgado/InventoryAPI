@@ -10,5 +10,9 @@ export const itemsService = {
     },
     getById(id: string) {
         return itemRepository.getById(id);
+    },
+    update(id: string, data: Partial<CreateItemBody>) {
+        return itemRepository.update(id, data);
     }
+    
 }

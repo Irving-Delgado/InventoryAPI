@@ -15,5 +15,10 @@ exports.itemsController = {
         console.log(req);
         const item = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
         return res.json(item);
+    },
+    async update(req, res) {
+        const itemId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const updated = await items_service_1.itemsService.update(itemId, req.body);
+        return res.json(updated);
     }
 };
