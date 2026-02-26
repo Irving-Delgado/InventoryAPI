@@ -1,6 +1,5 @@
-import express from 'express';
 import { itemsRouter } from './features/items/items.routes';
-import { Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 
 
 export const createApp = () => {

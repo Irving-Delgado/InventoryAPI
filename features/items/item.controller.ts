@@ -12,6 +12,8 @@ export const itemsController = {
     return res.json(items);
   },
   async getById(req: Request, res: Response) {
-    console.log("Getting item by ID:", req.params.id);
+    console.log(req)
+    const item = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    return res.json(item);
   }
 };

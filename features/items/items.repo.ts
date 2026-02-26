@@ -1,4 +1,3 @@
-import { get } from "node:http";
 import { prisma } from "../../lib/prisma";
 import { CreateItemBody } from "./items.model";
 
