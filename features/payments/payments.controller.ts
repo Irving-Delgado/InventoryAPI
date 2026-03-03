@@ -1,5 +1,7 @@
 import {Request, Response} from "express";
 import {stripe} from "../../lib/stripe"; 
+import { itemsService } from "../items/items.service";
+import { Stripe } from "stripe";
 
 export const paymentController = {
     async createPaymentIntent(req: Request, res: Response) {
@@ -31,7 +33,7 @@ export const paymentController = {
             res.status(500).send({ error: e.message });
         }
     },
-    handleWebhook(req: Request, res: Response) {
+    async handleWebhook(req: Request, res: Response) {
         const signature = req.headers['stripe-signature'];
         const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -40,8 +42,24 @@ export const paymentController = {
         }
 
         try {
-            const event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
-            console.log('Received event:', event.type);
+        const event = stripe.webhooks.constructEvent(
+            req.body,
+            signature,
+            webhookSecret
+        );
+
+        if (event.type === "checkout.session.completed") {
+            const session = event.data.object;
+            const itemId = session.metadata?.itemId;
+
+            if (!itemId) {
+                return res.status(400).json({ error: "missing itemId in metadata" });
+            }
+
+            await itemsService.sellOne(itemId);
+      }
+
+      return res.json({ received: true });
         }catch (e: any) {
             return res.status(400).send(`Webhook Error: ${e.message}`);
         }
