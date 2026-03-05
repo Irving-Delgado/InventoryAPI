@@ -2,8 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.paymentController = void 0;
 const stripe_1 = require("../../lib/stripe");
+const items_service_1 = require("../items/items.service");
 exports.paymentController = {
-    async createPaymentIntent(req, res) {
+    async createCheckoutSession(req, res) {
         try {
             const { item } = req.body;
             const session = await stripe_1.stripe.checkout.sessions.create({
@@ -32,7 +33,7 @@ exports.paymentController = {
             res.status(500).send({ error: e.message });
         }
     },
-    handleWebhook(req, res) {
+    async handleWebhook(req, res) {
         const signature = req.headers['stripe-signature'];
         const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
         if (!signature || !webhookSecret) {
@@ -40,7 +41,15 @@ exports.paymentController = {
         }
         try {
             const event = stripe_1.stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
-            console.log('Received event:', event.type);
+            if (event.type === "checkout.session.completed") {
+                const session = event.data.object;
+                const itemId = session.metadata?.itemId;
+                if (!itemId) {
+                    return res.status(400).json({ error: "missing itemId in metadata" });
+                }
+                await items_service_1.itemsService.sellOne(itemId);
+            }
+            return res.json({ received: true });
         }
         catch (e) {
             return res.status(400).send(`Webhook Error: ${e.message}`);

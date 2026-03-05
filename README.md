@@ -1,4 +1,4 @@
-# Landing Page API
+# Inventory API
 
 This repository contains a simple Express‑based backend for managing inventory items. It uses TypeScript, Prisma (with PostgreSQL), and exposes a minimal API which is documented using an OpenAPI/Swagger spec.
 

@@ -38,4 +38,4 @@ const express_1 = __importStar(require("express"));
 const payments_controller_1 = require("./payments.controller");
 exports.paymentsRouter = (0, express_1.Router)();
 exports.paymentsRouter.post("/webhook", express_1.default.raw({ type: 'application/json' }), payments_controller_1.paymentController.handleWebhook);
-exports.paymentsRouter.post("/create-payment-intent", payments_controller_1.paymentController.createPaymentIntent);
+exports.paymentsRouter.post("/create-checkout-session", payments_controller_1.paymentController.createCheckoutSession);

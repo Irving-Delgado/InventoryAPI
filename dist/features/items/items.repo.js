@@ -24,5 +24,14 @@ exports.itemRepository = {
     },
     delete(id) {
         return prisma_1.prisma.item.delete({ where: { id } });
+    },
+    sellOne(id) {
+        return prisma_1.prisma.item.update({
+            where: { id },
+            data: {
+                sold: { increment: 1 },
+                quantity: { decrement: 1 }
+            }
+        });
     }
 };

@@ -1,10 +1,9 @@
 import {Request, Response} from "express";
 import {stripe} from "../../lib/stripe"; 
 import { itemsService } from "../items/items.service";
-import { Stripe } from "stripe";
 
 export const paymentController = {
-    async createPaymentIntent(req: Request, res: Response) {
+    async createCheckoutSession(req: Request, res: Response) {
         try {
             const { item } = req.body;
             

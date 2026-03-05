@@ -1,5 +1,6 @@
 import { itemsRouter } from './features/items/items.routes';
 import express, { Request, Response } from 'express';
+import { paymentsRouter } from './features/payments/payments.routes';
 
 
 export const createApp = () => {
@@ -16,6 +17,20 @@ export const createApp = () => {
     });
 
     app.use("/items", itemsRouter);
+    app.use("/payments", paymentsRouter);
+
+    app.get("/success", (req, res) => {
+        res.json({
+            message: "payment success redirect hit",
+            query: req.query,
+        });
+    });
+
+    app.get("/cancel", (_req, res) => {
+        res.json({
+            message: "payment cancelled",
+        });
+    });
     
 
     return app;

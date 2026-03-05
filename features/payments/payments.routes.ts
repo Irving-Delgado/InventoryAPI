@@ -5,4 +5,4 @@ export const paymentsRouter = Router();
 
 paymentsRouter.post("/webhook", express.raw({type: 'application/json'}), paymentController.handleWebhook);
 
-paymentsRouter.post("/create-payment-intent", paymentController.createPaymentIntent);
+paymentsRouter.post("/create-checkout-session", paymentController.createCheckoutSession);
