@@ -7,8 +7,10 @@ exports.createApp = void 0;
 const items_routes_1 = require("./features/items/items.routes");
 const express_1 = __importDefault(require("express"));
 const payments_routes_1 = require("./features/payments/payments.routes");
+const payments_controller_1 = require("./features/payments/payments.controller");
 const createApp = () => {
     const app = (0, express_1.default)();
+    app.post("/payments/webhook", express_1.default.raw({ type: "application/json" }), payments_controller_1.paymentController.handleWebhook);
     app.use(express_1.default.json());
     app.use('/health', (req, res) => {
         res.json({ status: 'ok' });

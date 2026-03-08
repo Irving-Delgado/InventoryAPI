@@ -33,5 +33,14 @@ exports.itemRepository = {
                 quantity: { decrement: 1 }
             }
         });
+    },
+    sellMany(id, quantity) {
+        return prisma_1.prisma.item.update({
+            where: { id },
+            data: {
+                sold: { increment: quantity },
+                quantity: { decrement: quantity }
+            }
+        });
     }
 };

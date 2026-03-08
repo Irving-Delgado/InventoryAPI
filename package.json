@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --respawn --transpile-only dist/server.js",
+    "dev": "nodemon --watch src --ext ts,json --exec ts-node index.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },
@@ -15,7 +15,8 @@
     "@prisma/client": "^7.4.1",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "stripe": "^20.4.0"
+    "stripe": "^20.4.0",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

@@ -6,7 +6,22 @@ const items_service_1 = require("../items/items.service");
 exports.paymentController = {
     async createCheckoutSession(req, res) {
         try {
-            const { item } = req.body;
+            const { itemId, purchaseQuantity } = req.body;
+            if (!itemId || !purchaseQuantity || purchaseQuantity <= 0) {
+                return res.status(400).json({
+                    error: "itemId and valid purchaseQuantity are required",
+                });
+            }
+            const item = await items_service_1.itemsService.getById(itemId);
+            if (!item) {
+                return res.status(404).json({ error: "Item not found" });
+            }
+            if (!item.isActive) {
+                return res.status(400).json({ error: "Item is not active" });
+            }
+            if (purchaseQuantity > item.quantity) {
+                return res.status(400).json({ error: "Not enough stock available" });
+            }
             const session = await stripe_1.stripe.checkout.sessions.create({
                 mode: 'payment',
                 payment_method_types: ['card'],
@@ -15,16 +30,17 @@ exports.paymentController = {
                             currency: 'usd',
                             product_data: {
                                 name: item.name,
-                                description: item.description,
+                                description: item.description ?? undefined,
                             },
                             unit_amount: Math.round(item.price * 100), // Convert to cents
                         },
-                        quantity: item.quantity,
+                        quantity: purchaseQuantity,
                     }],
                 success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${process.env.CLIENT_URL}/cancel`,
                 metadata: {
                     itemId: item.id,
+                    purchaseQuantity: purchaseQuantity.toString(),
                 }
             });
             return res.status(200).json({ url: session.url });
@@ -44,15 +60,19 @@ exports.paymentController = {
             if (event.type === "checkout.session.completed") {
                 const session = event.data.object;
                 const itemId = session.metadata?.itemId;
+                const purchaseQuantity = Number(session.metadata?.purchaseQuantity ?? 1);
                 if (!itemId) {
                     return res.status(400).json({ error: "missing itemId in metadata" });
                 }
-                await items_service_1.itemsService.sellOne(itemId);
+                if (!Number.isInteger(purchaseQuantity) || purchaseQuantity <= 0) {
+                    return res.status(400).json({ error: "invalid purchaseQuantity in metadata" });
+                }
+                await items_service_1.itemsService.sellMany(itemId, purchaseQuantity);
             }
             return res.json({ received: true });
         }
         catch (e) {
             return res.status(400).send(`Webhook Error: ${e.message}`);
         }
-    },
+    }
 };

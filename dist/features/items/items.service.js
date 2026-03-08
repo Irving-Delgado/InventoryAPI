@@ -15,14 +15,14 @@ exports.itemsService = {
     update(id, data) {
         return items_repo_1.itemRepository.update(id, data);
     },
-    async sellOne(id) {
+    async sellMany(id, quantity) {
         const item = await items_repo_1.itemRepository.getById(id);
         if (!item)
             throw new Error('Item not found');
         if (!item.isActive)
             throw new Error('Item is not active');
-        if (item.quantity <= 0)
-            throw new Error('Item is out of stock');
-        return items_repo_1.itemRepository.sellOne(id);
+        if (item.quantity < quantity)
+            throw new Error('Not enough stock available');
+        return items_repo_1.itemRepository.sellMany(id, quantity);
     }
 };

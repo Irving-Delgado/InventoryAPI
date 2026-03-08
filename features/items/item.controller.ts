@@ -12,9 +12,18 @@ export const itemsController = {
     return res.json(items);
   },
   async getById(req: Request, res: Response) {
-    console.log(req)
-    const item = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    return res.json(item);
+     try {
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const item = await itemsService.getById(id);
+
+      if (!item) {
+        return res.status(404).json({ error: "Item not found" });
+      }
+
+      return res.status(200).json(item);
+    } catch (e: any) {
+      return res.status(500).json({ error: e.message });
+    }
   },
   async update(req: Request, res: Response) {
     const itemId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;

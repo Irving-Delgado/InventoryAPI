@@ -24,12 +24,12 @@ export const itemRepository = {
     delete(id: string) {
         return prisma.item.delete({ where: { id } });
     },
-    sellOne(id: string) {
+    sellMany(id: string, quantity: number) {
         return prisma.item.update({
             where: { id },
             data: {
-                sold: { increment: 1 },
-                quantity: { decrement: 1 }
+                sold: { increment: quantity },
+                quantity: { decrement: quantity }
             }
         });
     }
