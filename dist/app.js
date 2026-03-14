@@ -8,6 +8,7 @@ const items_routes_1 = require("./features/items/items.routes");
 const express_1 = __importDefault(require("express"));
 const payments_routes_1 = require("./features/payments/payments.routes");
 const payments_controller_1 = require("./features/payments/payments.controller");
+const auth_routes_1 = require("./features/auth/auth.routes");
 const createApp = () => {
     const app = (0, express_1.default)();
     app.post("/payments/webhook", express_1.default.raw({ type: "application/json" }), payments_controller_1.paymentController.handleWebhook);
@@ -17,6 +18,7 @@ const createApp = () => {
     });
     app.use("/items", items_routes_1.itemsRouter);
     app.use("/payments", payments_routes_1.paymentsRouter);
+    app.use("/auth", auth_routes_1.authRouter);
     app.get("/success", (req, res) => {
         res.json({
             message: "payment success redirect hit",

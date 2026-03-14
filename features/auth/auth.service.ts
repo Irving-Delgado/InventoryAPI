@@ -1,0 +1,92 @@
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { authRepository as authRepo } from "./auth.repo";
+import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
+
+
+export async function register(input: RegisterInput): Promise<AuthResponse> {
+    const email = input.email.trim().toLowerCase();
+    const name = input.name.trim();
+    const password = input.password;
+
+    if (!name) throw new Error("Name is required");
+    if (!email) throw new Error("Email is required");
+    if (!password) throw new Error("Password is required");
+
+    const existingUser = await authRepo.findUserByEmail(email);
+    if (existingUser) {
+        throw new Error("Email already in use");
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await authRepo.createUser({
+        name,
+        email,
+        passwordHash,
+    });
+
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+        throw new Error("JWT_SECRET is not set");
+    }
+
+    const token = jwt.sign(
+        { sub: user.id, role: user.role },
+        jwtSecret,
+        { expiresIn: "7d" }
+    );
+
+    return {
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
+        token,
+    };
+}
+
+export async function login(input: LoginInput): Promise<AuthResponse> {
+    const email = input.email.trim().toLowerCase();
+    const password = input.password;
+
+    if (!email) throw new Error("Email is required");
+    if (!password) throw new Error("Password is required");
+
+    const user = await authRepo.findUserByEmail(email);
+    if (!user) {
+        throw new Error("Invalid email or password");
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+        throw new Error("Invalid email or password");
+    }
+
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+        throw new Error("JWT_SECRET is not set");
+    }
+
+    const token = jwt.sign(
+        { sub: user.id, role: user.role },
+        jwtSecret,
+        { expiresIn: "7d" }
+    );
+
+    return {
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
+        token,
+    };
+}
+
+export async function getUsers() {
+  return authRepo.findAllUsers();
+}

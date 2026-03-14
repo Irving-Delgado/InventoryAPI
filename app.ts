@@ -2,6 +2,7 @@ import { itemsRouter } from './features/items/items.routes';
 import express, { Request, Response } from 'express';
 import { paymentsRouter } from './features/payments/payments.routes';
 import { paymentController } from './features/payments/payments.controller';
+import { authRouter } from './features/auth/auth.routes';
 
 
 export const createApp = () => {
@@ -24,6 +25,7 @@ export const createApp = () => {
 
     app.use("/items", itemsRouter);
     app.use("/payments", paymentsRouter);
+    app.use("/auth", authRouter);
 
     app.get("/success", (req, res) => {
         res.json({
