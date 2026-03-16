@@ -1,32 +1,66 @@
 openapi: 3.0.0
 info:
-  title: Landing Page API
-  description: API documentation for the Landing Page application
+  title: Inventory API
+  description: REST API for inventory management with authentication and Stripe payments.
   version: 1.0.0
 servers:
   - url: http://localhost:3000
     description: Local development server
+
 paths:
-  /items:
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Server is healthy
+
+  /auth/register:
     post:
-      summary: Create an inventory item
-      operationId: createItem
+      summary: Register a new user
+      operationId: register
       requestBody:
-        description: Item to add to the inventory
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateItemBody'
+              $ref: '#/components/schemas/AuthBody'
       responses:
         '201':
-          description: Item created successfully
+          description: User created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InventoryItem'
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid request body
+        '409':
+          description: Email already in use
+
+  /auth/login:
+    post:
+      summary: Login and receive a JWT
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthBody'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /items:
     get:
-      summary: Retrieve all inventory items
+      summary: List all inventory items
       operationId: listItems
       responses:
         '200':
@@ -37,8 +71,186 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/InventoryItem'
+    post:
+      summary: Create an inventory item
+      operationId: createItem
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemBody'
+      responses:
+        '201':
+          description: Item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '401':
+          description: Unauthorized
+
+  /items/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      summary: Get a single inventory item
+      operationId: getItemById
+      responses:
+        '200':
+          description: The requested item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '404':
+          description: Item not found
+    put:
+      summary: Update an inventory item
+      operationId: updateItem
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemBody'
+      responses:
+        '200':
+          description: Item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Item not found
+    delete:
+      summary: Delete an inventory item
+      operationId: deleteItem
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Item deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Item not found
+
+  /payments/checkout:
+    post:
+      summary: Create a Stripe checkout session
+      operationId: createCheckout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutBody'
+      responses:
+        '200':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: Stripe checkout URL to redirect the user to
+        '404':
+          description: Item not found
+
+  /payments/webhook:
+    post:
+      summary: Stripe webhook handler
+      operationId: stripeWebhook
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Webhook received
+        '400':
+          description: Invalid webhook signature
+
+  /payments/success:
+    get:
+      summary: Payment success redirect
+      operationId: paymentSuccess
+      responses:
+        '200':
+          description: Payment completed successfully
+
+  /payments/cancel:
+    get:
+      summary: Payment cancel redirect
+      operationId: paymentCancel
+      responses:
+        '200':
+          description: Payment was cancelled
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    AuthBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [ADMIN, USER]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     InventoryItem:
       type: object
       properties:
@@ -58,10 +270,10 @@ components:
           type: boolean
         sold:
           type: integer
-        createAt:
+        createdAt:
           type: string
           format: date-time
-        updateAt:
+        updatedAt:
           type: string
           format: date-time
       required:
@@ -71,9 +283,10 @@ components:
         - quantity
         - isActive
         - sold
-        - createAt
-        - updateAt
-    CreateItemBody:
+        - createdAt
+        - updatedAt
+
+    ItemBody:
       type: object
       properties:
         name:
@@ -85,162 +298,19 @@ components:
           format: float
         quantity:
           type: integer
-        isActive:        openapi: 3.0.0
-        info:
-          title: Landing Page API
-          description: API documentation for the Landing Page application
-          version: 1.0.0
-        servers:
-          - url: http://localhost:3000
-            description: Local development server
-        paths:
-          /items:
-            post:
-              summary: Create an inventory item
-              operationId: createItem
-              requestBody:
-                description: Item to add to the inventory
-                required: true
-                content:
-                  application/json:
-                    schema:
-                      $ref: '#/components/schemas/CreateItemBody'
-              responses:
-                '201':
-                  description: Item created successfully
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/InventoryItem'
-            get:
-              summary: Retrieve all inventory items
-              operationId: listItems
-              responses:
-                '200':
-                  description: A list of inventory items
-                  content:
-                    application/json:
-                      schema:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/InventoryItem'
-        
-          /items/{id}:
-            parameters:
-              - name: id
-                in: path
-                description: ID of the inventory item
-                required: true
-                schema:
-                  type: integer
-                  format: int64
-            get:
-              summary: Retrieve a single inventory item
-              operationId: getItemById
-              responses:
-                '200':
-                  description: The requested item
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/InventoryItem'
-                '404':
-                  description: Item not found
-            put:
-              summary: Replace an inventory item
-              operationId: replaceItem
-              requestBody:
-                description: New representation of the item
-                required: true
-                content:
-                  application/json:
-                    schema:
-                      $ref: '#/components/schemas/UpdateItemBody'
-              responses:
-                '200':
-                  description: Item updated successfully
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/InventoryItem'
-                '404':
-                  description: Item not found
-            delete:
-              summary: Delete an inventory item
-              operationId: deleteItem
-              responses:
-                '204':
-                  description: Item deleted successfully
-                '404':
-                  description: Item not found
-        
-        components:
-          schemas:
-            InventoryItem:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  format: int64
-                name:
-                  type: string
-                description:
-                  type: string
-                price:
-                  type: number
-                  format: float
-                quantity:
-                  type: integer
-                isActive:
-                  type: boolean
-                sold:
-                  type: integer
-                createAt:
-                  type: string
-                  format: date-time
-                updateAt:
-                  type: string
-                  format: date-time
-              required:
-                - id
-                - name
-                - price
-                - quantity
-                - isActive
-                - sold
-                - createAt
-                - updateAt
-            CreateItemBody:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                price:
-                  type: number
-                  format: float
-                quantity:
-                  type: integer
-                isActive:
-                  type: boolean
-              required:
-                - name
-            UpdateItemBody:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                price:
-                  type: number
-                  format: float
-                quantity:
-                  type: integer
-                isActive:
-                  type: boolean
-              # all fields optional for partial/replace updates
+        isActive:
           type: boolean
       required:
         - name
+
+    CheckoutBody:
+      type: object
+      properties:
+        itemId:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+      required:
+        - itemId
+        - quantity
