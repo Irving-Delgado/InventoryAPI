@@ -1,13 +1,20 @@
-export interface RegisterInput {
-    name: string;
-    email: string;
-    password: string;
-}
+import { z } from "zod";
 
-export interface LoginInput {
-    email: string;
-    password: string;
-}
+export const registerSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+// Infer TypeScript types from the schemas (replaces your manual interfaces)
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+
 export interface AuthResponse {
     token: string;
     user: {

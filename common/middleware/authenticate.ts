@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../../common/env";
 
 type JwtPayload = {
   sub: string;
@@ -14,11 +15,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
   }
 
   const token = authHeader.split(" ")[1];
-  const jwtSecret = process.env.JWT_SECRET;
-
-  if (!jwtSecret) {
-    return res.status(500).json({ error: "JWT_SECRET is not set" });
-  }
+  const jwtSecret = JWT_SECRET;
 
   try {
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;

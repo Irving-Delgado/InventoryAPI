@@ -2,7 +2,16 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { authRepository as authRepo } from "./auth.repo";
 import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
+import { JWT_SECRET } from "../../common/env";
+import { sign } from "node:crypto";
 
+function signToken(user: { id: string; role: "ADMIN" | "USER" }) {
+    return jwt.sign(
+        { sub: user.id, role: user.role },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+}
 
 export async function register(input: RegisterInput): Promise<AuthResponse> {
     const email = input.email.trim().toLowerCase();
@@ -12,6 +21,7 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
     if (!name) throw new Error("Name is required");
     if (!email) throw new Error("Email is required");
     if (!password) throw new Error("Password is required");
+    if (password.length < 8) throw new Error("Password must be at least 8 characters");
 
     const existingUser = await authRepo.findUserByEmail(email);
     if (existingUser) {
@@ -26,16 +36,7 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
         passwordHash,
     });
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-        throw new Error("JWT_SECRET is not set");
-    }
-
-    const token = jwt.sign(
-        { sub: user.id, role: user.role },
-        jwtSecret,
-        { expiresIn: "7d" }
-    );
+    const token = signToken(user);
 
     return {
         user: {
@@ -70,11 +71,7 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
         throw new Error("JWT_SECRET is not set");
     }
 
-    const token = jwt.sign(
-        { sub: user.id, role: user.role },
-        jwtSecret,
-        { expiresIn: "7d" }
-    );
+    const token = signToken(user);
 
     return {
         user: {
