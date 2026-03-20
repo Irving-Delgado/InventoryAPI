@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import { paymentsRouter } from './features/payments/payments.routes';
 import { paymentController } from './features/payments/payments.controller';
 import { authRouter } from './features/auth/auth.routes';
+import { orderRouter } from './features/orders/order.routes';
 
 
 export const createApp = () => {
@@ -26,6 +27,7 @@ export const createApp = () => {
     app.use("/items", itemsRouter);
     app.use("/payments", paymentsRouter);
     app.use("/auth", authRouter);
+    app.use("/orders", orderRouter);
 
     app.get("/success", (req, res) => {
         res.json({

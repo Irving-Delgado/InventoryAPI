@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import { authRepository as authRepo } from "./auth.repo";
 import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
 import { JWT_SECRET } from "../../common/env";
-import { sign } from "node:crypto";
 
 function signToken(user: { id: string; role: "ADMIN" | "USER" }) {
     return jwt.sign(
