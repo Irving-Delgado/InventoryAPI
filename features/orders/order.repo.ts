@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { CreateOrderBody } from "./order.model";
 import { OrderStatus } from "../../generated/prisma/enums";
 
-export const orderRepository = {
+export const OrderRepository = {
     create(data: CreateOrderBody){
         return prisma.order.create({
             data: {

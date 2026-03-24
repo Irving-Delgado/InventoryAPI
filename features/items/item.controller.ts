@@ -3,13 +3,23 @@ import { itemsService } from "./items.service";
 
 export const itemsController = {
   async create(req: Request, res: Response) {
-    const created = await itemsService.create(req.body);
-    return res.status(201).json(created);
+    try{
+      const created = await itemsService.create(req.body);
+      return res.status(201).json(created);
+    } catch (e: any) {
+      return res.status(500).json({ error: e.message });
+    }
   },
 
-  async list(_req: Request, res: Response) {
-    const items = await itemsService.list();
-    return res.json(items);
+  async list(req: Request, res: Response) {
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const items = await itemsService.list(page, limit);
+      return res.json(items);
+    } catch (e: any) {
+      return res.status(500).json({ error: e.message });
+    }
   },
   async getById(req: Request, res: Response) {
      try {
@@ -26,8 +36,21 @@ export const itemsController = {
     }
   },
   async update(req: Request, res: Response) {
-    const itemId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const updated = await itemsService.update(itemId, req.body);
-    return res.json(updated);
+    try {
+      const itemId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const updated = await itemsService.update(itemId, req.body);
+      return res.json(updated);
+    } catch (e: any) {
+      return res.status(500).json({ error: e.message });
+    }
+  },
+  async delete(req: Request, res: Response){
+    try {
+      const itemId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      await itemsService.delete(itemId);
+      return res.status(204).send();
+    } catch (e: any) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 };

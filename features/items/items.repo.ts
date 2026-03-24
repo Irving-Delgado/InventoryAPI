@@ -12,8 +12,8 @@ export const itemRepository = {
             },
         }); 
     },
-    list() {
-        return prisma.item.findMany({orderBy: { createdAt: "desc" }});
+    list(page: number, limit: number) {
+        return prisma.item.findMany({take: limit, skip: (page - 1) * limit, orderBy: { createdAt: "desc" }});
     },
     getById(id: string) {
         return prisma.item.findUnique({ where: { id } });

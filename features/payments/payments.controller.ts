@@ -1,10 +1,14 @@
 import {Request, Response} from "express";
 import {stripe} from "../../lib/stripe"; 
 import { itemsService } from "../items/items.service";
+import { orderService } from "../orders/order.service";
 
 export const paymentController = {
     async createCheckoutSession(req: Request, res: Response) {
         try {
+            if (!req.user) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
             const { itemId, purchaseQuantity } = req.body;
 
             if (!itemId || !purchaseQuantity || purchaseQuantity <= 0) {
@@ -44,7 +48,10 @@ export const paymentController = {
                 success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${process.env.CLIENT_URL}/cancel`,
                 metadata: {
+                    userId: req.user?.id,
                     itemId: item.id,
+                    itemName: item.name,
+                    itemPrice: item.price,
                     purchaseQuantity: purchaseQuantity.toString(),
                 }
             })
@@ -65,20 +72,38 @@ export const paymentController = {
                 signature,
                 webhookSecret
             );
-            if (event.type === "checkout.session.completed") {
-                const session = event.data.object;
-                
-                const itemId = session.metadata?.itemId;
-                const purchaseQuantity = Number(session.metadata?.purchaseQuantity ?? 1);
+            switch (event.type) {
 
-                if (!itemId) {
-                    return res.status(400).json({ error: "missing itemId in metadata" });
-                }
-                if (!Number.isInteger(purchaseQuantity) || purchaseQuantity <= 0) {
-                    return res.status(400).json({ error: "invalid purchaseQuantity in metadata" });
-                }
+                    case "checkout.session.completed" :
+                        const session = event.data.object;
+                        
+                        const { itemId, userId, itemName, itemPrice, purchaseQuantity: rawQuantity } = session.metadata ?? {};
+                        const quantity = Number(rawQuantity ?? 1);
+                        const unitPrice = Number(itemPrice);
 
-                await itemsService.sellMany(itemId, purchaseQuantity);
+
+                    if (!itemId || !userId || !itemName || !quantity ||!unitPrice) {
+                        return res.status(400).json({ error: "Missing required metadata" });
+                    }
+                    
+
+                    await itemsService.sellMany(itemId, quantity);
+                    const order = await orderService.create({
+                        userId: userId,
+                        stripeSessionId: session.id,
+                        items: [{
+                            itemId: itemId,
+                            itemName: itemName,
+                            quantity: quantity,
+                            unitPrice: unitPrice,
+                        }],
+                        total: quantity*unitPrice
+                    })
+                    await orderService.updateStatus(order.id, "PAID");
+                    break;
+                case "checkout.session.async_payment_failed":
+                    console.error("Payment Failed", event.data.object.id)
+                    break;
             }
 
             return res.json({ received: true });

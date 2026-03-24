@@ -5,8 +5,8 @@ export const itemsService = {
     create:(body: CreateItemBody) => {
         return itemRepository.create(body);
     },
-    list() {
-        return itemRepository.list();
+    list(page: number, limit: number) {
+        return itemRepository.list(page, limit);
     },
     getById(id: string) {
         return itemRepository.getById(id);
@@ -20,5 +20,8 @@ export const itemsService = {
         if(!item.isActive) throw new Error('Item is not active');
         if(item.quantity < quantity) throw new Error('Not enough stock available'); 
         return itemRepository.sellMany(id, quantity);
+    },
+    delete(id: string){
+        return itemRepository.delete(id);
     }
 }

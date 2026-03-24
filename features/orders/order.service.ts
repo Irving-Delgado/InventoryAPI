@@ -1,15 +1,18 @@
+import { OrderStatus } from "../../generated/prisma/enums";
 import { CreateOrderBody } from "./order.model";
-import { orderRepository } from "./order.repo"
+import { OrderRepository } from "./order.repo"
 
 export const orderService = {
     create: (body: CreateOrderBody) => {
-        return orderRepository.create(body);
+        return OrderRepository.create(body);
     },
     listByUser: (userId: string) => {
-        return orderRepository.listByUser(userId);
+        return OrderRepository.listByUser(userId);
     },
     getById: (orderId: string) => {
-        return orderRepository.getById(orderId);
+        return OrderRepository.getById(orderId);
+    },
+    updateStatus(id: string, status: OrderStatus){
+        return OrderRepository.updateStatus(id, status);
     }
-
 }

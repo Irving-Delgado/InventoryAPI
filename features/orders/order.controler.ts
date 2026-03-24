@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { orderService } from "./order.service";
-import { log } from "node:console";
 
 export const orderController = {
     async create(req: Request, res: Response) {
@@ -10,8 +9,7 @@ export const orderController = {
             }
             const created = await orderService.create({...req.body, userId: req.user.id});
             return res.status(201).json(created);
-        }catch (e: any) {   
-            console.log(e);
+        }catch (e: any) {
             return res.status(500).json({ error: "Internal server error" });
         }
     },
