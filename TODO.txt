@@ -1,0 +1,21 @@
+TODO - Inventory API
+====================
+
+DONE
+----
+[x] Zod validation on auth routes
+[x] Supabase migration
+[x] CORS
+[x] Rate limiting on /auth/login
+[x] Race condition in sellMany (updateMany with atomic stock check)
+[x] Order ownership check in GET /orders/:id
+[x] Zod validation on items routes
+[x] Helmet.js
+[x] Search and filter on GET /items
+[x] Global error handler (ZodError → 400)
+[x] Jest setup with mocked Prisma
+
+TODO
+----
+[ ] Refresh tokens - short lived access tokens + refresh token flow
+[ ] Tests - items, orders, payments test coverage

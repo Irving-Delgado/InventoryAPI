@@ -12,8 +12,16 @@ export const itemRepository = {
             },
         }); 
     },
-    list(page: number, limit: number) {
-        return prisma.item.findMany({take: limit, skip: (page - 1) * limit, orderBy: { createdAt: "desc" }});
+    list(page: number, limit: number, filters: { name?: string; isActive?: boolean }) {
+        return prisma.item.findMany({
+            take: limit,
+            skip: (page - 1) * limit,
+            orderBy: { createdAt: "desc" },
+            where: {
+                ...(filters.name && { name: { contains: filters.name, mode: "insensitive" } }),
+                ...(filters.isActive !== undefined && { isActive: filters.isActive }),
+            }
+        });
     },
     getById(id: string) {
         return prisma.item.findUnique({ where: { id } });
@@ -25,8 +33,11 @@ export const itemRepository = {
         return prisma.item.delete({ where: { id } });
     },
     sellMany(id: string, quantity: number) {
-        return prisma.item.update({
-            where: { id },
+        return prisma.item.updateMany({
+            where: { 
+                id,
+                quantity: { gte: quantity }
+             },
             data: {
                 sold: { increment: quantity },
                 quantity: { decrement: quantity }

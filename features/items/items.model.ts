@@ -1,30 +1,13 @@
-export type InventoryItem = {
-    id: number;
-    name: string;
-    description?: string;
-    price: number;
-    quantity: number;
-    isActive: boolean
-    sold: number;
-    /*
-        sku: string;
-        notes: string;
-        tags: string[];
-    */
-    createAt: Date;
-    updateAt: Date;
-}
+import { z } from "zod";
 
-export type CreateItemBody = {
-    name: string;
-    description?: string;
-    price?: number;
-    quantity?: number;
-    isActive?: boolean;
+export const createItemSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  price: z.number().positive(),
+  quantity: z.number().int().min(0),
+  isActive: z.boolean().optional(),
+});
 
-    /*
-        sku?: string;
-        notes?: string;
-        tags?: string[];
-    */
-}
+export const updateItemSchema = createItemSchema.partial(); // all fields optional for updates
+
+export type CreateItemBody = z.infer<typeof createItemSchema>;

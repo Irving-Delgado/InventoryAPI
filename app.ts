@@ -4,6 +4,10 @@ import { paymentsRouter } from './features/payments/payments.routes';
 import { paymentController } from './features/payments/payments.controller';
 import { authRouter } from './features/auth/auth.routes';
 import { orderRouter } from './features/orders/order.routes';
+import { errorHandler } from "./common/middleware/errorHandler";
+
+import cors from "cors";
+import helmet from "helmet";
 
 
 export const createApp = () => {
@@ -15,6 +19,13 @@ export const createApp = () => {
     );
 
     app.use(express.json());
+    app.use(helmet());
+    app.use(errorHandler);
+
+    app.use(cors({
+        origin: process.env.CLIENT_URL,
+        methods: ["GET", "POST", "PUT", "DELETE"]
+    }))
 
     interface HealthResponse {
         status: string;
