@@ -20,38 +20,38 @@ export const createApp = () => {
 
     app.use(express.json());
     app.use(helmet());
-    app.use(errorHandler);
-
+    
     app.use(cors({
         origin: process.env.CLIENT_URL,
         methods: ["GET", "POST", "PUT", "DELETE"]
     }))
-
+    
     interface HealthResponse {
         status: string;
     }
-
+    
     app.use('/health', (req: Request, res: Response<HealthResponse>) => {
         res.json({ status: 'ok' });
     });
-
+    
     app.use("/items", itemsRouter);
     app.use("/payments", paymentsRouter);
     app.use("/auth", authRouter);
     app.use("/orders", orderRouter);
-
+    
     app.get("/success", (req, res) => {
         res.json({
             message: "payment success redirect hit",
             query: req.query,
         });
     });
-
+    
     app.get("/cancel", (_req, res) => {
         res.json({
             message: "payment cancelled",
         });
     });
+    app.use(errorHandler);
     
     return app;
 }

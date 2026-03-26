@@ -65,11 +65,6 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
         throw new Error("Invalid email or password");
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-        throw new Error("JWT_SECRET is not set");
-    }
-
     const token = signToken(user);
 
     return {
