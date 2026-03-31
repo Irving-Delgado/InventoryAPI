@@ -1,5 +1,6 @@
 TODO - Inventory API
 ====================
+Goal: Serve a customer-facing ecommerce store + admin inventory dashboard backend.
 
 DONE
 ----
@@ -14,8 +15,54 @@ DONE
 [x] Search and filter on GET /items
 [x] Global error handler (ZodError → 400)
 [x] Jest setup with mocked Prisma
+[x] Tests - items, orders, payments test coverage
 
 TODO
 ----
+
+Auth
 [ ] Refresh tokens - short lived access tokens + refresh token flow
-[ ] Tests - items, orders, payments test coverage
+[ ] Forgot password / password reset via email token
+[ ] Email verification on registration
+[ ] Change password endpoint (authenticated)
+
+Ecommerce / Customer
+[ ] Product categories - add category field to items, filter by category
+[ ] Product images - image URL field on items
+[ ] Product reviews & ratings - POST/GET /items/:id/reviews
+[ ] Wishlist - save items for later (POST/DELETE /wishlist)
+[ ] Saved shipping addresses - address book per user
+[ ] Order cancellation - cancel PENDING orders before fulfillment
+[ ] Pagination on GET /orders (order history)
+[ ] GET /orders/:id ownership check (only owner or admin can view)
+
+Payments & Refunds
+[ ] Refunds - Stripe refund integration on cancelled orders
+[ ] Discount codes / coupons - apply at checkout, validate in createCheckoutSession
+[ ] Handle checkout.session.expired webhook event (restore stock)
+[ ] Handle async_payment_failed - mark order FAILED, restore stock
+
+Shipping
+[ ] Integrate shipping feature (shipping.controller/service/repo already scaffolded)
+[ ] Link shipping record to order on checkout.session.completed
+[ ] Shipping status updates (PENDING → SHIPPED → DELIVERED)
+[ ] Shipping address captured at checkout (Stripe shipping_address_collection)
+
+Admin Dashboard
+[ ] GET /admin/orders - list all orders (admin only, with filters/pagination)
+[ ] PUT /admin/orders/:id/status - manually update order status
+[ ] GET /admin/users - list all users
+[ ] DELETE /admin/users/:id - deactivate a user account
+[ ] GET /admin/stats - sales summary (revenue, units sold, top items)
+[ ] Low stock alerts - flag items where quantity falls below a threshold
+[ ] Bulk item import via CSV
+
+Notifications
+[ ] Order confirmation email on successful payment
+[ ] Shipping update email when status changes
+[ ] Low stock alert email to admin
+
+Infrastructure
+[ ] API versioning (prefix routes with /v1)
+[ ] Request logging middleware (method, path, status, duration)
+[ ] Idempotency on webhook handler (skip already-processed session IDs)

@@ -1,14 +1,25 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { authRepository as authRepo } from "./auth.repo";
 import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
 import { JWT_SECRET } from "../../common/env";
+
+function generateTokens( userId : string) {
+    const accessToken = jwt.sign(
+        { sub: userId },
+        JWT_SECRET,
+        { expiresIn: "15m" }
+    );
+    const rawRefreshToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawRefreshToken).digest("hex");
+}
 
 function signToken(user: { id: string; role: "ADMIN" | "USER" }) {
     return jwt.sign(
         { sub: user.id, role: user.role },
         JWT_SECRET,
-        { expiresIn: "7d" }
+        { expiresIn: "15m" }
     );
 }
 
