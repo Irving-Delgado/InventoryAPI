@@ -3,26 +3,34 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { authRepository as authRepo } from "./auth.repo";
 import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
-import { JWT_SECRET } from "../../common/env";
+import { JWT_SECRET, REFRESH_TOKEN_SECRET } from "../../common/env";
 
-function generateTokens( userId : string) {
-    const accessToken = jwt.sign(
-        { sub: userId },
-        JWT_SECRET,
-        { expiresIn: "15m" }
-    );
-    const rawRefreshToken = crypto.randomBytes(32).toString("hex");
-    const tokenHash = crypto.createHash("sha256").update(rawRefreshToken).digest("hex");
+function hashToken(token: string) {
+    return crypto.createHash("sha256").update(token).digest("hex");
 }
-
-function signToken(user: { id: string; role: "ADMIN" | "USER" }) {
+function signAccessToken(user: { id: string; role: "ADMIN" | "USER" }) {
     return jwt.sign(
         { sub: user.id, role: user.role },
         JWT_SECRET,
         { expiresIn: "15m" }
     );
 }
-
+function signRefreshToken() {
+    const rawRefreshToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawRefreshToken).digest("hex");
+    return { rawRefreshToken, tokenHash };
+}
+async function refresh(rawToken: string) {
+    const payload = jwt.verify(rawToken, REFRESH_TOKEN_SECRET);
+    const tokenHash = hashToken(rawToken);
+    const stored = await authRepo.findRefreshToken(tokenHash);
+    if (!stored) {
+        throw new Error("Invalid refresh token");
+    }
+    await authRepo.deleteRefreshToken(tokenHash);
+    const newRefreshToken = signRefreshToken();
+    await authRepo.createRefreshToken( hashToken(newRefreshToken), stored.userId, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+}
 export async function register(input: RegisterInput): Promise<AuthResponse> {
     const email = input.email.trim().toLowerCase();
     const name = input.name.trim();

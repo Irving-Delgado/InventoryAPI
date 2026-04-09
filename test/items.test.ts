@@ -207,6 +207,26 @@ describe("PUT /items/:id", () => {
         expect(res.status).toBe(200);
         expect(res.body.price).toBe(12.99);
     });
+
+    it("returns 400 when body has invalid price", async () => {
+        const res = await request(app)
+            .put("/items/item-1")
+            .set("Authorization", `Bearer ${adminToken}`)
+            .send({ price: -5 });
+
+        expect(res.status).toBe(400);
+    });
+
+    it("returns 500 when item does not exist", async () => {
+        (prisma.item.update as jest.Mock).mockRejectedValue(new Error("Record not found"));
+
+        const res = await request(app)
+            .put("/items/nonexistent")
+            .set("Authorization", `Bearer ${adminToken}`)
+            .send({ price: 9.99 });
+
+        expect(res.status).toBe(500);
+    });
 });
 
 describe("DELETE /items/:id", () => {
@@ -232,5 +252,15 @@ describe("DELETE /items/:id", () => {
             .set("Authorization", `Bearer ${adminToken}`);
 
         expect(res.status).toBe(204);
+    });
+
+    it("returns 500 when item does not exist", async () => {
+        (prisma.item.delete as jest.Mock).mockRejectedValue(new Error("Record not found"));
+
+        const res = await request(app)
+            .delete("/items/nonexistent")
+            .set("Authorization", `Bearer ${adminToken}`);
+
+        expect(res.status).toBe(500);
     });
 });

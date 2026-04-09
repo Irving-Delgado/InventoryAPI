@@ -25,5 +25,31 @@ export const authRepository = {
             updatedAt: true,
             },
         });
-    }   
+    },
+    findUserById(id: string) {
+        return prisma.user.findUnique({ where: { id } });
+    },
+    createRefreshToken(userId: string, tokenHash: string, expiresAt: Date) {
+        return prisma.refreshToken.create({
+            data: {
+                userId,
+                tokenHash,
+                expiresAt,
+            },
+        });
+    },
+    findRefreshToken(tokenHash: string) {
+        return prisma.refreshToken.findUnique({
+            where: {
+                tokenHash,
+            },
+        });
+    },
+    deleteRefreshToken(tokenHash: string) {
+        return prisma.refreshToken.delete({
+            where: {
+                tokenHash
+            },
+        });
+    }
 };
