@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
+import crypto, { sign } from "crypto";
 import { authRepository as authRepo } from "./auth.repo";
 import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
 import { JWT_SECRET, REFRESH_TOKEN_SECRET } from "../../common/env";
@@ -21,7 +21,6 @@ function signRefreshToken() {
     return { rawRefreshToken, tokenHash };
 }
 async function refresh(rawToken: string) {
-    const payload = jwt.verify(rawToken, REFRESH_TOKEN_SECRET);
     const tokenHash = hashToken(rawToken);
     const stored = await authRepo.findRefreshToken(tokenHash);
     if (!stored) {
@@ -29,7 +28,7 @@ async function refresh(rawToken: string) {
     }
     await authRepo.deleteRefreshToken(tokenHash);
     const newRefreshToken = signRefreshToken();
-    await authRepo.createRefreshToken( hashToken(newRefreshToken), stored.userId, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    await authRepo.createRefreshToken( hashToken(newRefreshToken.tokenHash), stored.userId, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
 }
 export async function register(input: RegisterInput): Promise<AuthResponse> {
     const email = input.email.trim().toLowerCase();
@@ -54,7 +53,7 @@ export async function register(input: RegisterInput): Promise<AuthResponse> {
         passwordHash,
     });
 
-    const token = signToken(user);
+    const token = signAccessToken(user);
 
     return {
         user: {
@@ -84,7 +83,7 @@ export async function login(input: LoginInput): Promise<AuthResponse> {
         throw new Error("Invalid email or password");
     }
 
-    const token = signToken(user);
+    const token = signAccessToken(user);
 
     return {
         user: {
