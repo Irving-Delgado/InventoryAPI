@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import crypto, { sign } from "crypto";
+import crypto from "crypto";
 import { authRepository as authRepo } from "./auth.repo";
 import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
-import { JWT_SECRET, REFRESH_TOKEN_SECRET } from "../../common/env";
+import { JWT_SECRET } from "../../common/env";
 
 function hashToken(token: string) {
     return crypto.createHash("sha256").update(token).digest("hex");
@@ -28,7 +28,17 @@ async function refresh(rawToken: string) {
     }
     await authRepo.deleteRefreshToken(tokenHash);
     const newRefreshToken = signRefreshToken();
-    await authRepo.createRefreshToken( hashToken(newRefreshToken.tokenHash), stored.userId, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    await authRepo.createRefreshToken( stored.userId, newRefreshToken.tokenHash, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+
+    const user = await authRepo.findUserById(stored.userId);
+    if (!user) throw new Error("User not found");
+    const accessToken = signAccessToken(user);
+    return { accessToken, rawRefreshToken: newRefreshToken.rawRefreshToken };
+
+}
+export async function logout(rawToken: string) {
+    const tokenHash = hashToken(rawToken);
+    await authRepo.deleteRefreshToken(tokenHash);
 }
 export async function register(input: RegisterInput): Promise<AuthResponse> {
     const email = input.email.trim().toLowerCase();

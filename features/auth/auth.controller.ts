@@ -30,3 +30,16 @@ export async function getUsers(req: Request, res: Response, next: NextFunction) 
     next(error);
   }
 }
+export async function logout(req: Request, res: Response, next: NextFunction) {
+    try {
+        const rawToken = req.cookies.refreshToken;
+        if (!rawToken) {
+            return res.status(204).send();
+        }
+        await authService.logout(rawToken);
+        res.clearCookie("refreshToken");
+        res.status(204).send();
+    } catch (error) {
+        next(error);
+    }
+}
