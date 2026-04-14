@@ -36,10 +36,10 @@ export const createApp = () => {
         res.json({ status: 'ok' });
     });
     
-    app.use("/items", itemsRouter);
-    app.use("/payments", paymentsRouter);
-    app.use("/auth", authRouter);
-    app.use("/orders", orderRouter);
+    app.use("/v1/items", itemsRouter);
+    app.use("/v1/payments", paymentsRouter);
+    app.use("/v1/auth", authRouter);
+    app.use("/v1/orders", orderRouter);
     
     app.get("/success", (req, res) => {
         res.json({

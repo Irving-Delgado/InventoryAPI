@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { authRepository as authRepo } from "./auth.repo";
-import { RegisterInput, LoginInput, AuthResponse } from "./auth.model";
+import { RegisterInput, LoginInput, AuthResponse, ChangePasswordInput } from "./auth.model";
 import { JWT_SECRET } from "../../common/env";
 
 function hashToken(token: string) {
@@ -20,7 +20,7 @@ function signRefreshToken() {
     const tokenHash = crypto.createHash("sha256").update(rawRefreshToken).digest("hex");
     return { rawRefreshToken, tokenHash };
 }
-async function refresh(rawToken: string) {
+export async function refresh(rawToken: string) {
     const tokenHash = hashToken(rawToken);
     const stored = await authRepo.findRefreshToken(tokenHash);
     if (!stored) {
@@ -34,12 +34,25 @@ async function refresh(rawToken: string) {
     if (!user) throw new Error("User not found");
     const accessToken = signAccessToken(user);
     return { accessToken, rawRefreshToken: newRefreshToken.rawRefreshToken };
-
 }
+
 export async function logout(rawToken: string) {
     const tokenHash = hashToken(rawToken);
     await authRepo.deleteRefreshToken(tokenHash);
 }
+
+export async function changePassword(userId: string, input: ChangePasswordInput){
+    const user = await authRepo.findUserById(userId);
+    if(!user) throw new Error("User not found");
+
+    const isMatch = await bcrypt.compare(input.currentPassword, user.passwordHash);
+    if(!isMatch) throw new Error("Current password is incorrect");
+
+    const newHash = await bcrypt.hash(input.newPassword, 10);
+    await authRepo.updatePassword(userId, newHash);
+}
+
+
 export async function register(input: RegisterInput): Promise<AuthResponse> {
     const email = input.email.trim().toLowerCase();
     const name = input.name.trim();

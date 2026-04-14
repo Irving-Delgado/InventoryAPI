@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as authService from "./auth.service";
-import { loginSchema, registerSchema } from "./auth.model";
+import { changePasswordSchema, loginSchema, registerSchema } from "./auth.model";
 
 export async function register(req: Request, res: Response, next: NextFunction) {
     try {
@@ -8,6 +8,17 @@ export async function register(req: Request, res: Response, next: NextFunction) 
         const result = await authService.register(input);
         res.status(201).json(result);
     } catch (error) {
+        next(error);
+    }
+}
+
+export async function changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+        const input = changePasswordSchema.parse(req.body);
+        if(!req.user) throw new Error("Unauthorized");
+        await authService.changePassword(req.user.id, input);
+        res.status(200).json({ message: "Password changed successfully" });
+    }catch (error) {
         next(error);
     }
 }

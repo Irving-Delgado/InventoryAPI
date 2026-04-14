@@ -16,15 +16,15 @@ DONE
 [x] Global error handler (ZodError → 400)
 [x] Jest setup with mocked Prisma
 [x] Tests - items, orders, payments test coverage
+[x] Refresh tokens - short lived access tokens + refresh token flow
 
 TODO
 ----
 
 Auth
-[ ] Refresh tokens - short lived access tokens + refresh token flow
 [ ] Forgot password / password reset via email token
 [ ] Email verification on registration
-[ ] Change password endpoint (authenticated)
+[x] Change password endpoint (authenticated)
 
 Ecommerce / Customer
 [ ] Product categories - add category field to items, filter by category
@@ -63,6 +63,6 @@ Notifications
 [ ] Low stock alert email to admin
 
 Infrastructure
-[ ] API versioning (prefix routes with /v1)
+[x] API versioning (prefix routes with /v1)
 [ ] Request logging middleware (method, path, status, duration)
 [ ] Idempotency on webhook handler (skip already-processed session IDs)

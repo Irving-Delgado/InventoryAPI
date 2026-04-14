@@ -15,3 +15,4 @@ const loginLimiter = rateLimit({
 authRouter.post("/register", authController.register);
 authRouter.post("/login", loginLimiter, authController.login);
 authRouter.get("/users", authenticate, requireRole("ADMIN"), authController.getUsers);
+authRouter.put("/change-password", authenticate, authController.changePassword);
