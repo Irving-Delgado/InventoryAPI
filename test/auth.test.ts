@@ -51,7 +51,7 @@ describe("POST /auth/register", () => {
         (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
         (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
 
-        const res = await request(app).post("/auth/register").send({
+        const res = await request(app).post("/v1/auth/register").send({
             name: "Jesse",
             email: "test@example.com",
             password: "password123",
@@ -63,7 +63,7 @@ describe("POST /auth/register", () => {
     });
 
     it("returns 400 with invalid email", async () => {
-        const res = await request(app).post("/auth/register").send({
+        const res = await request(app).post("/v1/auth/register").send({
             name: "Jesse",
             email: "notanemail",
             password: "password123",
@@ -72,7 +72,7 @@ describe("POST /auth/register", () => {
     });
 
     it("returns 400 with short password", async () => {
-        const res = await request(app).post("/auth/register").send({
+        const res = await request(app).post("/v1/auth/register").send({
             name: "Jesse",
             email: "test@example.com",
             password: "123",
@@ -83,7 +83,7 @@ describe("POST /auth/register", () => {
     it("returns 500 when email is already in use", async () => {
         (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
 
-        const res = await request(app).post("/auth/register").send({
+        const res = await request(app).post("/v1/auth/register").send({
             name: "Jesse",
             email: "test@example.com",
             password: "password123",
@@ -98,7 +98,7 @@ describe("POST /auth/login", () => {
         (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
         (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-        const res = await request(app).post("/auth/login").send({
+        const res = await request(app).post("/v1/auth/login").send({
             email: "test@example.com",
             password: "password123",
         });
@@ -111,7 +111,7 @@ describe("POST /auth/login", () => {
     it("returns 500 when user does not exist", async () => {
         (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
-        const res = await request(app).post("/auth/login").send({
+        const res = await request(app).post("/v1/auth/login").send({
             email: "notfound@example.com",
             password: "password123",
         });
@@ -123,7 +123,7 @@ describe("POST /auth/login", () => {
         (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
         (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-        const res = await request(app).post("/auth/login").send({
+        const res = await request(app).post("/v1/auth/login").send({
             email: "test@example.com",
             password: "wrongpassword",
         });
@@ -132,7 +132,7 @@ describe("POST /auth/login", () => {
     });
 
     it("returns 400 with invalid email", async () => {
-        const res = await request(app).post("/auth/login").send({
+        const res = await request(app).post("/v1/auth/login").send({
             email: "notanemail",
             password: "password123",
         });
@@ -142,13 +142,13 @@ describe("POST /auth/login", () => {
 
 describe("GET /auth/users", () => {
     it("returns 401 when not authenticated", async () => {
-        const res = await request(app).get("/auth/users");
+        const res = await request(app).get("/v1/auth/users");
         expect(res.status).toBe(401);
     });
 
     it("returns 403 when user is not ADMIN", async () => {
         const res = await request(app)
-            .get("/auth/users")
+            .get("/v1/auth/users")
             .set("Authorization", `Bearer ${userToken}`);
         expect(res.status).toBe(403);
     });
@@ -159,7 +159,7 @@ describe("GET /auth/users", () => {
         ]);
 
         const res = await request(app)
-            .get("/auth/users")
+            .get("/v1/auth/users")
             .set("Authorization", `Bearer ${adminToken}`);
 
         expect(res.status).toBe(200);

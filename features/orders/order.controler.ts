@@ -18,7 +18,9 @@ export const orderController = {
             if (!req.user) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
-            const list = await orderService.listByUser(req.user.id);
+            const { page = "1", limit = "10" } = req.query;
+            const  skip = (Number(page) - 1) * Number(limit);
+            const list = await orderService.listByUser(req.user.id, skip, Number(limit));
             return res.json(list);
         } catch (e: any) {
             return res.status(500).json({ error: "Internal server error" });

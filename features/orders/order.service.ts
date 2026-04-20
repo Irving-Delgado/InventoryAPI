@@ -6,8 +6,8 @@ export const orderService = {
     create: (body: CreateOrderBody) => {
         return OrderRepository.create(body);
     },
-    listByUser: (userId: string) => {
-        return OrderRepository.listByUser(userId);
+    listByUser: (userId: string, skip: number, limit: number) => {
+        return OrderRepository.listByUser(userId, skip, limit);
     },
     getById: (orderId: string) => {
         return OrderRepository.getById(orderId);

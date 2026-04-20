@@ -16,8 +16,13 @@ export const OrderRepository = {
             include: { items: true }
         });
     },
-    listByUser(userId: string) {
-        return prisma.order.findMany({orderBy: { createdAt: "desc" }, where: { userId }, include: { items: true }});
+    listByUser(userId: string, skip: number, limit: number) {
+        return prisma.order.findMany({
+            orderBy: { createdAt: "desc" }, 
+            where: { userId }, include: { items: true },
+            skip,
+            take: limit
+        });
     },
     getById(orderId: string) { 
         return prisma.order.findUnique({ where: { id: orderId }, include: { items: true }});

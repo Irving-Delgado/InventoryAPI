@@ -62,7 +62,7 @@ afterEach(() => {
 describe("POST /payments/create-checkout-session", () => {
     it("returns 401 when not authenticated", async () => {
         const res = await request(app)
-            .post("/payments/create-checkout-session")
+            .post("/v1/payments/create-checkout-session")
             .send({ itemId: "item-1", purchaseQuantity: 1 });
 
         expect(res.status).toBe(401);
@@ -70,7 +70,7 @@ describe("POST /payments/create-checkout-session", () => {
 
     it("returns 400 when itemId is missing", async () => {
         const res = await request(app)
-            .post("/payments/create-checkout-session")
+            .post("/v1/payments/create-checkout-session")
             .set("Authorization", `Bearer ${userToken}`)
             .send({ purchaseQuantity: 1 });
 
@@ -79,7 +79,7 @@ describe("POST /payments/create-checkout-session", () => {
 
     it("returns 400 when purchaseQuantity is 0", async () => {
         const res = await request(app)
-            .post("/payments/create-checkout-session")
+            .post("/v1/payments/create-checkout-session")
             .set("Authorization", `Bearer ${userToken}`)
             .send({ itemId: "item-1", purchaseQuantity: 0 });
 
@@ -90,7 +90,7 @@ describe("POST /payments/create-checkout-session", () => {
         (prisma.item.findUnique as jest.Mock).mockResolvedValue(null);
 
         const res = await request(app)
-            .post("/payments/create-checkout-session")
+            .post("/v1/payments/create-checkout-session")
             .set("Authorization", `Bearer ${userToken}`)
             .send({ itemId: "nonexistent", purchaseQuantity: 1 });
 
@@ -101,7 +101,7 @@ describe("POST /payments/create-checkout-session", () => {
         (prisma.item.findUnique as jest.Mock).mockResolvedValue({ ...mockItem, isActive: false });
 
         const res = await request(app)
-            .post("/payments/create-checkout-session")
+            .post("/v1/payments/create-checkout-session")
             .set("Authorization", `Bearer ${userToken}`)
             .send({ itemId: "item-1", purchaseQuantity: 1 });
 
@@ -113,7 +113,7 @@ describe("POST /payments/create-checkout-session", () => {
         (prisma.item.findUnique as jest.Mock).mockResolvedValue({ ...mockItem, quantity: 2 });
 
         const res = await request(app)
-            .post("/payments/create-checkout-session")
+            .post("/v1/payments/create-checkout-session")
             .set("Authorization", `Bearer ${userToken}`)
             .send({ itemId: "item-1", purchaseQuantity: 5 });
 
@@ -128,7 +128,7 @@ describe("POST /payments/create-checkout-session", () => {
         });
 
         const res = await request(app)
-            .post("/payments/create-checkout-session")
+            .post("/v1/payments/create-checkout-session")
             .set("Authorization", `Bearer ${userToken}`)
             .send({ itemId: "item-1", purchaseQuantity: 2 });
 

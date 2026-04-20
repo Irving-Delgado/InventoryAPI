@@ -47,7 +47,7 @@ describe("GET /items", () => {
     it("returns 200 with a list of items (public)", async () => {
         (prisma.item.findMany as jest.Mock).mockResolvedValue([mockItem]);
 
-        const res = await request(app).get("/items");
+        const res = await request(app).get("/v1/items");
 
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
@@ -57,7 +57,7 @@ describe("GET /items", () => {
     it("supports pagination via query params", async () => {
         (prisma.item.findMany as jest.Mock).mockResolvedValue([mockItem]);
 
-        const res = await request(app).get("/items?page=2&limit=5");
+        const res = await request(app).get("/v1/items?page=2&limit=5");
 
         expect(res.status).toBe(200);
         expect(prisma.item.findMany).toHaveBeenCalledWith(
@@ -68,7 +68,7 @@ describe("GET /items", () => {
     it("filters by name when provided", async () => {
         (prisma.item.findMany as jest.Mock).mockResolvedValue([mockItem]);
 
-        const res = await request(app).get("/items?name=Widget");
+        const res = await request(app).get("/v1/items?name=Widget");
 
         expect(res.status).toBe(200);
         expect(prisma.item.findMany).toHaveBeenCalledWith(
@@ -83,7 +83,7 @@ describe("GET /items", () => {
     it("filters by isActive=false when provided", async () => {
         (prisma.item.findMany as jest.Mock).mockResolvedValue([]);
 
-        const res = await request(app).get("/items?isActive=false");
+        const res = await request(app).get("/v1/items?isActive=false");
 
         expect(res.status).toBe(200);
         expect(prisma.item.findMany).toHaveBeenCalledWith(
@@ -98,7 +98,7 @@ describe("GET /items/:id", () => {
     it("returns 200 with the item (public)", async () => {
         (prisma.item.findUnique as jest.Mock).mockResolvedValue(mockItem);
 
-        const res = await request(app).get("/items/item-1");
+        const res = await request(app).get("/v1/items/item-1");
 
         expect(res.status).toBe(200);
         expect(res.body.id).toBe("item-1");
@@ -107,7 +107,7 @@ describe("GET /items/:id", () => {
     it("returns 404 when item does not exist", async () => {
         (prisma.item.findUnique as jest.Mock).mockResolvedValue(null);
 
-        const res = await request(app).get("/items/nonexistent");
+        const res = await request(app).get("/v1/items/nonexistent");
 
         expect(res.status).toBe(404);
     });
@@ -115,7 +115,7 @@ describe("GET /items/:id", () => {
 
 describe("POST /items", () => {
     it("returns 401 when no token provided", async () => {
-        const res = await request(app).post("/items").send({
+        const res = await request(app).post("/v1/items").send({
             name: "New Item",
             price: 5.0,
             quantity: 10,
@@ -126,7 +126,7 @@ describe("POST /items", () => {
 
     it("returns 403 when user is not ADMIN", async () => {
         const res = await request(app)
-            .post("/items")
+            .post("/v1/items")
             .set("Authorization", `Bearer ${userToken}`)
             .send({
                 name: "New Item",
@@ -141,7 +141,7 @@ describe("POST /items", () => {
         (prisma.item.create as jest.Mock).mockResolvedValue(mockItem);
 
         const res = await request(app)
-            .post("/items")
+            .post("/v1/items")
             .set("Authorization", `Bearer ${adminToken}`)
             .send({
                 name: "Widget",
@@ -155,7 +155,7 @@ describe("POST /items", () => {
 
     it("returns 400 when body is invalid (negative price)", async () => {
         const res = await request(app)
-            .post("/items")
+            .post("/v1/items")
             .set("Authorization", `Bearer ${adminToken}`)
             .send({
                 name: "Bad Item",
@@ -168,7 +168,7 @@ describe("POST /items", () => {
 
     it("returns 400 when name is missing", async () => {
         const res = await request(app)
-            .post("/items")
+            .post("/v1/items")
             .set("Authorization", `Bearer ${adminToken}`)
             .send({
                 price: 5.0,
@@ -181,14 +181,14 @@ describe("POST /items", () => {
 
 describe("PUT /items/:id", () => {
     it("returns 401 when no token provided", async () => {
-        const res = await request(app).put("/items/item-1").send({ price: 12.99 });
+        const res = await request(app).put("/v1/items/item-1").send({ price: 12.99 });
 
         expect(res.status).toBe(401);
     });
 
     it("returns 403 when user is not ADMIN", async () => {
         const res = await request(app)
-            .put("/items/item-1")
+            .put("/v1/items/item-1")
             .set("Authorization", `Bearer ${userToken}`)
             .send({ price: 12.99 });
 
@@ -200,7 +200,7 @@ describe("PUT /items/:id", () => {
         (prisma.item.update as jest.Mock).mockResolvedValue(updated);
 
         const res = await request(app)
-            .put("/items/item-1")
+            .put("/v1/items/item-1")
             .set("Authorization", `Bearer ${adminToken}`)
             .send({ price: 12.99 });
 
@@ -210,7 +210,7 @@ describe("PUT /items/:id", () => {
 
     it("returns 400 when body has invalid price", async () => {
         const res = await request(app)
-            .put("/items/item-1")
+            .put("/v1/items/item-1")
             .set("Authorization", `Bearer ${adminToken}`)
             .send({ price: -5 });
 
@@ -221,7 +221,7 @@ describe("PUT /items/:id", () => {
         (prisma.item.update as jest.Mock).mockRejectedValue(new Error("Record not found"));
 
         const res = await request(app)
-            .put("/items/nonexistent")
+            .put("/v1/items/nonexistent")
             .set("Authorization", `Bearer ${adminToken}`)
             .send({ price: 9.99 });
 
@@ -231,14 +231,14 @@ describe("PUT /items/:id", () => {
 
 describe("DELETE /items/:id", () => {
     it("returns 401 when no token provided", async () => {
-        const res = await request(app).delete("/items/item-1");
+        const res = await request(app).delete("/v1/items/item-1");
 
         expect(res.status).toBe(401);
     });
 
     it("returns 403 when user is not ADMIN", async () => {
         const res = await request(app)
-            .delete("/items/item-1")
+            .delete("/v1/items/item-1")
             .set("Authorization", `Bearer ${userToken}`);
 
         expect(res.status).toBe(403);
@@ -248,7 +248,7 @@ describe("DELETE /items/:id", () => {
         (prisma.item.delete as jest.Mock).mockResolvedValue(mockItem);
 
         const res = await request(app)
-            .delete("/items/item-1")
+            .delete("/v1/items/item-1")
             .set("Authorization", `Bearer ${adminToken}`);
 
         expect(res.status).toBe(204);
@@ -258,7 +258,7 @@ describe("DELETE /items/:id", () => {
         (prisma.item.delete as jest.Mock).mockRejectedValue(new Error("Record not found"));
 
         const res = await request(app)
-            .delete("/items/nonexistent")
+            .delete("/v1/items/nonexistent")
             .set("Authorization", `Bearer ${adminToken}`);
 
         expect(res.status).toBe(500);

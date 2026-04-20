@@ -47,7 +47,7 @@ afterEach(() => {
 
 describe("POST /orders", () => {
     it("returns 401 when not authenticated", async () => {
-        const res = await request(app).post("/orders").send({
+        const res = await request(app).post("/v1/orders").send({
             stripeSessionId: "cs_test_session",
             items: mockOrderItems,
             total: 19.98,
@@ -60,7 +60,7 @@ describe("POST /orders", () => {
         (prisma.order.create as jest.Mock).mockResolvedValue(mockOrder);
 
         const res = await request(app)
-            .post("/orders")
+            .post("/v1/orders")
             .set("Authorization", `Bearer ${userToken}`)
             .send({
                 stripeSessionId: "cs_test_session",
@@ -76,7 +76,7 @@ describe("POST /orders", () => {
 
 describe("GET /orders", () => {
     it("returns 401 when not authenticated", async () => {
-        const res = await request(app).get("/orders");
+        const res = await request(app).get("/v1/orders");
 
         expect(res.status).toBe(401);
     });
@@ -85,7 +85,7 @@ describe("GET /orders", () => {
         (prisma.order.findMany as jest.Mock).mockResolvedValue([mockOrder]);
 
         const res = await request(app)
-            .get("/orders")
+            .get("/v1/orders")
             .set("Authorization", `Bearer ${userToken}`);
 
         expect(res.status).toBe(200);
@@ -93,11 +93,25 @@ describe("GET /orders", () => {
         expect(res.body[0].id).toBe("order-1");
     });
 
+    it("supports pagination parameters", async () => {
+        (prisma.order.findMany as jest.Mock).mockResolvedValue([mockOrder]);
+        
+        const res = await request(app)
+            .get("/v1/orders?page=2&limit=5")
+            .set("Authorization", `Bearer ${userToken}`);
+
+        expect(res.status).toBe(200);
+        expect(prisma.order.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({ take: 5, skip: 5 })
+        );
+
+    });
+
     it("only fetches orders for the authenticated user", async () => {
         (prisma.order.findMany as jest.Mock).mockResolvedValue([]);
 
         await request(app)
-            .get("/orders")
+            .get("/v1/orders")
             .set("Authorization", `Bearer ${otherUserToken}`);
 
         expect(prisma.order.findMany).toHaveBeenCalledWith(
@@ -110,7 +124,7 @@ describe("GET /orders", () => {
 
 describe("GET /orders/:id", () => {
     it("returns 401 when not authenticated", async () => {
-        const res = await request(app).get("/orders/order-1");
+        const res = await request(app).get("/v1/orders/order-1");
 
         expect(res.status).toBe(401);
     });
@@ -119,7 +133,7 @@ describe("GET /orders/:id", () => {
         (prisma.order.findUnique as jest.Mock).mockResolvedValue(mockOrder);
 
         const res = await request(app)
-            .get("/orders/order-1")
+            .get("/v1/orders/order-1")
             .set("Authorization", `Bearer ${userToken}`);
 
         expect(res.status).toBe(200);
@@ -131,7 +145,7 @@ describe("GET /orders/:id", () => {
         (prisma.order.findUnique as jest.Mock).mockResolvedValue(null);
 
         const res = await request(app)
-            .get("/orders/nonexistent")
+            .get("/v1/orders/nonexistent")
             .set("Authorization", `Bearer ${userToken}`);
 
         expect(res.status).toBe(404);
